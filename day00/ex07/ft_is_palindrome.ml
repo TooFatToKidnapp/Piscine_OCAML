@@ -3,20 +3,20 @@ let ft_is_palindrome (s: string): bool =
     if start == 0 && end_c == -1 then
       true
     else (
-      if String.get s start == String.get s end_c then
+      if String.get s start = String.get s end_c then
         if start < end_c then
           check_chars (start + 1) (end_c - 1)
         else
           true
-        else
-          false
+      else
+        false
     )
     in
       check_chars 0 ((String.length s) - 1)
 
 
 let () =
-  if ft_is_palindrome "radar" then
+  if ft_is_palindrome "aabbaa" then
     print_endline "True"
   else
     print_endline "False";

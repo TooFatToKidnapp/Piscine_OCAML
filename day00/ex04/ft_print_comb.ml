@@ -13,11 +13,10 @@ let ft_print_comb() =
             print_next_permutation first (second + 1) (second +  2)
       ) else
         print_next_permutation (first + 1) (first + 2) (first + 3)
-    ) in
-      print_next_permutation 0 1 2;
-      print_string "\n"
-
-
+    )
+  in
+  print_next_permutation 0 1 2;
+  print_string "\n"
 
 let () = ft_print_comb()
 

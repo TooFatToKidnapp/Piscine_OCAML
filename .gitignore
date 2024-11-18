@@ -1,2 +1,6 @@
 .vagrant
 .ssh_env
+*.cmi
+*.cmx
+*.o
+a.out

@@ -5,7 +5,6 @@ let rec ft_power(base: int) (exponent: int) : int =
     base * ft_power base (exponent - 1)
 
 
-
 let () =
     print_int (ft_power 2 4);
     print_char '\n';
