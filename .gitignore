@@ -2,5 +2,7 @@
 .ssh_env
 *.cmi
 *.cmx
+*.cmo
 *.o
 a.out
+.DS_Store
