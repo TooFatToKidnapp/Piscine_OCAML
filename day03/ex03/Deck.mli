@@ -1,4 +1,3 @@
-
 module Card : sig
 
   module Color : sig
