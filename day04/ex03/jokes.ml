@@ -6,13 +6,13 @@ let () =
     let open_file filename =
       try
         let channel = open_in filename in
-        Some channel
+        Ok channel
       with
-      | Sys_error _ -> None
+      | Sys_error err -> Error err
     in
     match open_file jokes_file_path with
-    | None -> Printf.printf "Error: [%s] no sutch file\n" jokes_file_path
-    | Some file_handler -> begin
+    | Error err -> Printf.printf "Error: Can't open file [%s]\n%s\n" jokes_file_path err
+    | Ok file_handler -> begin
       let jokes_arr = ref [||] in
       try
         while true do
