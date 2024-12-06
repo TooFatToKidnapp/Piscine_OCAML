@@ -16,7 +16,7 @@ let examples_of_file file_path : (float array * string) list =
             let line_split = String.split_on_char ',' line in
             match List.rev line_split with
             | [] -> read_lines acc
-            | label :: features when (String.length label > 0 && (label.[0] = 'g' || label.[0] = 'd')) -> (
+            | label :: features when (String.length label > 0 && (label.[0] = 'g' || label.[0] = 'b')) -> (
                 try
                   let float_list = List.map float_of_string (List.rev features) in
                   let float_arr = Array.of_list float_list in

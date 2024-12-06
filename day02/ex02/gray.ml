@@ -1,5 +1,4 @@
 (* https://www.cs.cmu.edu/Groups/AI/html/faqs/ai/genetic/part6/faq-doc-1.html *)
-
 let gray c =
   let rec aux n =
     match n with
@@ -25,15 +24,15 @@ let gray c =
             in
           concat_list (add_prefix "0" previous) (rev_list [] (add_prefix "1" previous))
       in
-  let print_gray_sequence n =
-    let sequence = aux n in
-    let rec iter fn = function
-    | [] -> ()
-    | h::t -> fn h; iter fn t;
-  in
-    iter (fun s -> print_string s; print_char ' ') sequence;
-    print_newline ()
-  in print_gray_sequence c
+      let print_gray_sequence n =
+      let sequence = aux n in
+      let rec iter fn = function
+        | [] -> ()
+        | h::t -> fn h; iter fn t;
+      in
+      iter (fun s -> print_string s; print_char ' ') sequence;
+      print_newline ()
+      in print_gray_sequence c
 
 let () =
 gray 1;

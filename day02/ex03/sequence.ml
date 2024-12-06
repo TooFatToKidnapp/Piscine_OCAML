@@ -1,36 +1,39 @@
-let sequence n = begin
-  if n < 0 then ""
-  else begin
-    let rec aux c start = begin
-      let rec build_sequence acc elm count = function
-        | [] -> acc @ [elm ^ (string_of_int count)]
-        | h::t -> if h = elm then build_sequence acc h (count + 1) t
-                  else build_sequence (acc @ [elm ^ (string_of_int count)]) h 1 t
-      in
-      if c = 0 then start
-      else match start with
-      | [] -> []
-      | h::t -> aux (c - 1) (build_sequence [] h 0 t)
-    end
-    in
-      let rec list_as_str acc = function
-      | [] -> acc
-      | h::t -> list_as_str (acc ^ h) t
-      in
-      list_as_str "" (aux n ["1"])
-  end
-end
+let sequence n =
+  let rec get_seq_len l e i =
+    match l with
+    | h::t when h = e -> get_seq_len t e (i + 1)
+    | _ -> i
+  in
+  let rec skip_seq l e =
+    match l with
+    | h::t when h = e -> skip_seq t e
+    | _ -> l
+  in
+  let rec get_next_seq l =
+    match l with
+    | [] -> []
+    | h::t ->
+      let len = get_seq_len t h 1 in
+      len :: h :: get_next_seq (skip_seq t h)
+  in
+  let rec generate_seq l n =
+    match n with
+    | _ when n <= 0 -> l
+    | _ -> generate_seq (get_next_seq l) (n - 1)
+  in
+  let rec seq_from_str str l =
+    match l with
+    | [] -> str
+    | h::t -> seq_from_str (str ^ (string_of_int h)) t
+  in
+    seq_from_str "" (generate_seq [1] n)
 
-(*
-  2
-  aux 2 ["1"]
-    build : [] "1" 0 [] ->
-
-*)
 
 let () =
-  print_endline ("[" ^ (sequence 0) ^ "]");
-  print_endline ("[" ^ (sequence 1) ^ "]");
-  print_endline ("[" ^ (sequence 2) ^ "]");
-  print_endline ("[" ^ (sequence 3) ^ "]");
-  print_endline ("[" ^ (sequence 4) ^ "]");
+  print_endline (sequence 0);
+  print_endline (sequence 1);
+  print_endline (sequence 2);
+  print_endline (sequence 3);
+  print_endline (sequence 4);
+  print_endline (sequence 5);
+  print_endline (sequence 6);

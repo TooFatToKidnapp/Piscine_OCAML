@@ -80,6 +80,43 @@ let generate_helix n  =
     create_helix [] n
 
 
+let helix_to_string h =
+  let rec aux h =
+    match h with
+    | [] -> ""
+    | h::t -> match h.nucleo with
+              | A -> "A" ^ aux t
+              | C -> "C" ^ aux t
+              | G -> "G" ^ aux t
+              | T -> "T" ^ aux t
+              | _ -> "" ^ aux t
+  in
+  aux h
+
+let complementary_helix (h: helix) =
+  let rec aux h  =
+    match h with
+    | [] -> []
+    | h::t -> match h.nucleo with
+            | A -> (generate_nucleotide 'T') :: aux t
+            | C -> (generate_nucleotide 'G') :: aux t
+            | G -> (generate_nucleotide 'C') :: aux t
+            | T -> (generate_nucleotide 'A') :: aux t
+            | _ -> (generate_nucleotide 'X') :: aux t
+  in
+  aux h
+
+let print_nucleotide n =
+    let nucleobase_to_str m =
+    match m with
+    | A -> "A"
+    | T -> "T"
+    | C -> "C"
+    | G -> "G"
+    | _ -> "None"
+  in
+  nucleobase_to_str n
+
 let generate_rna h =
   let rec creat_rna acc = function
   | [] -> acc

@@ -30,8 +30,6 @@ let generate_nucleotide c : nucleotide =
   | _ -> create_nucleotide None
 
 
-
-
 let print_nucleotide n =
     let nucleobase_to_str m =
     match m with

@@ -18,7 +18,7 @@ let crossover lst lst2 =
 
 let rec print_list = function
 | [] -> print_char '\n'
-| a:: l ->
+| a :: l ->
   print_char a;
   print_list l
 

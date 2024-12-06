@@ -1,24 +1,23 @@
 type 'a ft_ref = { mutable contents: 'a }
 
-let return (content: 'a) : 'a ft_ref =
-  { contents = content }
+let return (contents: 'a) : 'a ft_ref =
+  { contents }
 
 
 let get (r: 'a ft_ref): 'a =
   r.contents
 
 
-let set (r: 'a ft_ref) (content: 'a) : unit =
-  r.contents <- content
+let set (r: 'a ft_ref) (new_content: 'a) : unit =
+  r.contents <- new_content
 
 let bind (r: 'a ft_ref) (fn: 'a -> 'b ft_ref) : 'b ft_ref =
   fn r.contents
 
 
 let () =
-  let t = (return 1)
-  in let new_t = bind t (fun x -> return (x + 1))
-  in
+  let t = (return 1) in
+  let new_t = bind t (fun x -> return (x + 1)) in
   print_string "t = ";
   print_int (get t);
   print_char '\n';

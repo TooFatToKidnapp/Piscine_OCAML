@@ -50,6 +50,32 @@ let generate_helix n =
     in
     create_helix [] n
 
+let helix_to_string h =
+  let rec aux h =
+    match h with
+    | [] -> ""
+    | h::t -> match h.nucleo with
+              | A -> "A" ^ aux t
+              | C -> "C" ^ aux t
+              | G -> "G" ^ aux t
+              | T -> "T" ^ aux t
+              | _ -> "" ^ aux t
+  in
+  aux h
+
+let complementary_helix (h: helix) =
+  let rec aux h  =
+    match h with
+    | [] -> []
+    | h::t -> match h.nucleo with
+            | A -> (generate_nucleotide 'T') :: aux t
+            | C -> (generate_nucleotide 'G') :: aux t
+            | G -> (generate_nucleotide 'C') :: aux t
+            | T -> (generate_nucleotide 'A') :: aux t
+            | _ -> (generate_nucleotide 'X') :: aux t
+  in
+  aux h
+
 let print_nucleotide n =
     let nucleobase_to_str m =
     match m with
@@ -60,6 +86,7 @@ let print_nucleotide n =
     | _ -> "None"
   in
   nucleobase_to_str n
+
 let rec print_helix = function
 | [] -> ()
 | h::t ->
@@ -67,4 +94,8 @@ let rec print_helix = function
   print_helix t
 
 let () =
-  print_helix (generate_helix 5);
+  let h = generate_helix 5 in
+  print_helix h;
+  print_endline (helix_to_string h);
+  print_string "complementary_helix: ";
+  print_helix (complementary_helix h);

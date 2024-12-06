@@ -6,5 +6,5 @@ let () =
   print_char '\n';
   print_float (sum 0.0 4.69) ;
   print_char '\n' ;
-  print_float (sum 69. 4.5) ;
+  print_float (sum 69. nan) ;
   print_char '\n' ;
