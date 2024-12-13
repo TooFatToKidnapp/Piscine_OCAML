@@ -8,7 +8,7 @@ module MakeFst: MAKEPROJECTION = functor (Pair : PAIR) ->
     let x = Stdlib.fst Pair.pair
 end
 
-module MakeSnd: MAKEPROJECTION = functor (Pair : PAIR) ->
+module MakeSnd: MAKEPROJECTION  = functor (Pair : PAIR) ->
   struct
     let x = Stdlib.snd Pair.pair
 end
