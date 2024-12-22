@@ -36,7 +36,7 @@ module Make: MAKE = functor (Input: FRACTIONNAL_BITS) ->
   type t = int
   let to_int (t: t) = t lsr bits
   let of_int (i: int): t = i lsl bits
-  let to_float (t: t) = float_of_int t /. float_of_int (of_int 1)
+  let to_float (t: t) = (float_of_int t ) /. (float_of_int (of_int 1))
   let of_float (f: float) =
     int_of_float (floor (0.5 +.(f *. (float_of_int (of_int 1)))))
   let to_string (t: t) =
@@ -60,8 +60,8 @@ module Make: MAKE = functor (Input: FRACTIONNAL_BITS) ->
   let eqs t1 t2 = if t1 = t2 then true else false
   let add t1 t2 = t1 + t2
   let sub t1 t2 = t1 - t2
-  let mul t1 t2 = t1 * t2
-  let div t1 t2 = t1 / t2
+  let mul t1 t2 = (t1 * t2) lsr bits
+  let div t1 t2 = (t1 lsl bits) / t2
 
   let rec foreach st ed f =
     match st with
@@ -78,4 +78,30 @@ let () =
   let y8 = Fixed8.of_float 21.32 in
   let r8 = Fixed8.add x8 y8 in
   print_endline (Fixed8.to_string r8);
-  Fixed4.foreach (Fixed4.zero) (Fixed4.one) (fun f -> print_endline (Fixed4.to_string f))
+  Fixed4.foreach (Fixed4.zero) (Fixed4.one) (fun f -> print_endline (Fixed4.to_string f));
+
+  let assert_equal name expected actual =
+    if expected = actual then
+      Printf.printf "%s: PASS\n" name
+    else
+      Printf.printf "%s: FAIL (Expected: %s, Got: %s)\n" name (Fixed4.to_string expected) (Fixed4.to_string actual)
+  in
+
+  assert_equal "zero" (Fixed4.of_int 0) Fixed4.zero;
+  assert_equal "one" (Fixed4.of_int 1) Fixed4.one;
+
+  let a = Fixed4.of_float 3.14 in
+  assert_equal "of_float" (Fixed4.of_int 3) (Fixed4.to_int a |> Fixed4.of_int);
+
+  assert (Fixed4.gth Fixed4.one Fixed4.zero);
+  assert (not (Fixed4.lth Fixed4.one Fixed4.zero));
+  assert (Fixed4.gte Fixed4.one Fixed4.zero);
+  assert (not (Fixed4.lte Fixed4.one Fixed4.zero));
+
+  assert_equal "min" Fixed4.zero (Fixed4.min Fixed4.zero Fixed4.one);
+  assert_equal "max" Fixed4.one (Fixed4.max Fixed4.zero Fixed4.one);
+
+  assert (Fixed4.eqs Fixed4.one (Fixed4.of_int 1));
+  assert (not (Fixed4.eqs Fixed4.one Fixed4.zero));
+
+  Printf.printf "All tests completed.\n"

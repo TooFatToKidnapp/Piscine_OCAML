@@ -6,12 +6,12 @@ module type MAKEPROJECTION = functor (Pair: PAIR) -> VAL
 module MakeFst: MAKEPROJECTION = functor (Pair : PAIR) ->
   struct
     let x = Stdlib.fst Pair.pair
-end
+  end
 
 module MakeSnd: MAKEPROJECTION  = functor (Pair : PAIR) ->
   struct
     let x = Stdlib.snd Pair.pair
-end
+  end
 
 module Pair : PAIR = struct let pair = ( 21, 42 ) end
 module Fst : VAL = MakeFst (Pair)

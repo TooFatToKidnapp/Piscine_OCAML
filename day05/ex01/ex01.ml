@@ -6,7 +6,7 @@ module StringHashtbl = Hashtbl.Make(struct
     let rec aux index acc =
       match index with
       | len when len = String.length s -> acc
-      | _ -> aux (index + 1) (acc + index + int_of_char s.[index])
+      | _ -> aux (index + 1) (acc +  (int_of_char s.[index] / (index + 1)))
     in
     aux 0 0
 
