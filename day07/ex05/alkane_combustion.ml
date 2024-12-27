@@ -1,85 +1,127 @@
-let print_molecules (molecules: (Molecule.molecule * int) list) =
-  List.iter (fun (molecule, amount) ->
-    let formula = molecule#get_formula in
-    Printf.printf "%d %s\n" amount formula
-  ) molecules
-;;
-class alkane_combustion (to_react: Alkane.alkane list) =
+class alkane_combustion (alkanes: Alkane.alkane list) =
   let rec alkane_molecule_count alkanes c h =
     match alkanes with
     | [] -> (c ,h)
     | head::t -> alkane_molecule_count t (head#carbon_count + c) (head#hydrogen_count + h)
   in
-  let rec reaction_start (alkanes: Molecule.molecule list)  acc =
-    match alkanes with
-    | [] -> acc
-    | h::t -> match acc with
-              | (m, c) :: n when h#equals m -> reaction_start t ((m ,(c + 1)) :: n)
-              | _ -> reaction_start t ((h, 1) :: acc)
-  in
-  let ppcm a b =
-      let rec iter acc_a acc_b =
-        let b' = acc_b * b in
-        let a' = acc_a * a in
-          if a' = b' then a'
-          else if a' < b' then iter (acc_a + 1) acc_b
-          else iter acc_a (acc_b + 1)
-        in
-        if a = 0 || b = 0 then 0
-        else iter 1 1
-  in
-  object
-  val start: ((Molecule.molecule * int) list) = reaction_start (to_react :> Molecule.molecule list) [(new Dioxygen.dioxygen, 0)]
-  val result: ((Molecule.molecule * int) list) = []
-  val init_molecule_count = alkane_molecule_count to_react 0 0
-  val balanced = false
-  inherit Reaction.reaction [] []
-  method is_balanced = balanced
-  method get_start = if balanced then start else failwith "Not balanced"
-  method get_result = if balanced then result else failwith "Not balanced"
-  method balance =
-    let balance_left f diox =
-        let rec iter = function
-        | [] -> []
-        | (m, _) :: t when m#get_formula = "O2" -> (m, diox) :: (iter t)
-        | (m, n) :: t -> (m, n * f) :: (iter t)
-    in
-    iter start
-    and balance_right cd_count w_count =
-      [(new Carbon_dioxyde.carbon_dioxyde, cd_count); (new Water.water, w_count)]
-    in
-      let (c, h) = init_molecule_count in
-      if c > 0 && h > 0 then
-        let dcarbon = ppcm 4 c in
-        let fact = dcarbon / c in
-        let water = (h * fact) / 2 in
-        let diox = (2 * dcarbon + water) / 2 in
-        ({< start = balance_left fact diox; result = balance_right dcarbon water; balanced = true >} :> Reaction.reaction)
-      else
-        ({< balanced = true>} :> Reaction.reaction)
 
-        method get_incomplete_results molecule_list =
-          let rec compute_results oxygen_amount molecules acc =
+  object (this)
+    val init_molecule_count = alkane_molecule_count alkanes 0 0
+    val _alkanes = alkanes
+    method private format_alkanes: (Molecule.molecule * int) list =
+      let rec add_list elem list result =
+        match list with
+        | [] -> result @ [(elem, 1)]
+        | (data, count)::tail ->
+           if (data#equals elem) then result @ [(elem, count + 1)] @ tail
+           else add_list elem tail (result @ [(data, count)])
+      in
+      let rec store list result =
+        match list with
+        | [] -> result
+        | head::tail -> store tail (add_list (head :> Molecule.molecule) result [])
+      in
+      store _alkanes []
+    method get_start: (Molecule.molecule * int) list =
+      if (this#is_balanced) then
+        let rec aux list carbon hydrogen =
+          match list with
+          | [] -> carbon + hydrogen / 4
+          | head::tail -> aux tail (carbon + head#carbon_count) (hydrogen + head#carbon_count * 2 + 2)
+      in
+			this#format_alkanes @ [(new Dioxygen.dioxygen, (aux _alkanes 0 0))]
+    else
+      raise (Invalid_argument "Reaction not balanced")
+  method get_result: (Molecule.molecule * int) list =
+    if (this#is_balanced) then
+      let rec aux list carbon hydrogen =
+        match list with
+        | [] ->
+           (carbon, hydrogen)
+        | head::tail ->
+          aux tail (carbon + head#carbon_count) (hydrogen + head#carbon_count * 2 + 2)
+      in
+      match (aux _alkanes 0 0) with
+      | (c, h) ->
+         [(new Carbon_dioxyde.carbon_dioxyde, c)] @ [(new Water.water, h / 2)]
+    else
+      raise (Invalid_argument "Reaction not balanced")
+  method balance =
+    if (this#is_balanced) then
+      {<_alkanes = alkanes>}
+    else
+      let smallest lst =
+        let rec inner lst smallest =
+          match lst with
+          | [] -> smallest
+          | head::tail ->
+             if (((head#carbon_count * 2 + 2) mod 4) = 0) then
+               inner tail smallest
+             else
+               inner tail (min head#carbon_count smallest)
+        in
+        match _alkanes with
+        | [] -> 0
+        | _ ->
+           inner lst 4000000
+      in
+      let alkane = smallest _alkanes in
+      {<_alkanes = _alkanes @ [object inherit Alkane.alkane alkane end]>}  method is_balanced: bool =
+    let rec inner lst hydrogen =
+      match lst with
+      | [] -> hydrogen
+      | head::tail -> inner tail (hydrogen + head#carbon_count * 2 + 2)
+    in
+    if (((inner _alkanes 0) mod 4) = 0) then
+      true
+    else
+      false
+
+  method private get_oxygen_needed molecule amount =
+    let (carbon, hydrogen) = (molecule#carbon_count, molecule#hydrogen_count) in
+    (2 * carbon + (hydrogen / 2)) * amount
+
+  method private create_incomplete_products molecule amount oxygen_available =
+    let carbon = molecule#carbon_count * amount in
+    let hydrogen = molecule#hydrogen_count * amount in
+    let oxygen_for_co = min oxygen_available carbon in
+    let oxygen_remaining = oxygen_available - oxygen_for_co in
+    let oxygen_for_water = min oxygen_remaining (hydrogen / 2) in
+    let soot = carbon - oxygen_for_co in
+    [
+      (new Carbon_monoxide.carbon_monoxide, oxygen_for_co);
+      (new Soot.soot, soot);
+      (new Water.water, oxygen_for_water)
+    ]
+
+  method get_incomplete_results =
+    if List.length _alkanes = 0 then
+      raise (Invalid_argument "No alkanes provided")
+    else
+      let total_oxygen_needed = List.fold_left
+        (fun acc alkane -> acc + this#get_oxygen_needed alkane 1)
+        0 _alkanes in
+      let rec compute_all_possibilities oxygen_amount acc =
+        if oxygen_amount > total_oxygen_needed then acc
+        else
+          let rec distribute_oxygen molecules available_oxygen current_result =
             match molecules with
-            | [] -> acc
-            | (head, amount)::tail ->
-               let (carbon, hydrogen) = (head#carbon_count, head#hydrogen_count) in
-               let oxygen_needed = (2 * carbon + (hydrogen / 2)) * amount in
-               if oxygen_needed <= oxygen_amount then
-                 compute_results (oxygen_amount - oxygen_needed) tail acc
-               else
-                 let missing_oxygen = oxygen_needed - oxygen_amount in
-                 let products =
-                   [
-                     (new Carbon_monoxide.carbon_monoxide, carbon * amount);
-                     (new Soot.soot, carbon * amount);
-                     (new Water.water, (hydrogen * amount) / 2);
-                   ]
-                 in
-                 compute_results oxygen_amount tail ((missing_oxygen, products) :: acc)
+            | [] -> (available_oxygen, current_result)
+            | (molecule, amount)::rest ->
+                let needed = this#get_oxygen_needed molecule amount in
+                if needed <= available_oxygen then
+                  distribute_oxygen rest (available_oxygen - needed)
+                    (current_result @ this#create_incomplete_products molecule amount needed)
+                else
+                  let products = this#create_incomplete_products molecule amount available_oxygen in
+                  (0, current_result @ products)
           in
-          let (carbon, hydrogen) = init_molecule_count in
-          let max_oxygen = 2 * carbon + (hydrogen / 2) in
-          print_molecules molecule_list;
-          List.rev (compute_results max_oxygen molecule_list [])
-  end
+          let (_remaining, products) = distribute_oxygen
+            (List.map (fun m -> (m, 1)) _alkanes)
+            oxygen_amount [] in
+          compute_all_possibilities (oxygen_amount + 1)
+            ((total_oxygen_needed - oxygen_amount, products) :: acc)
+      in
+      List.rev (compute_all_possibilities 0 [])
+
+end

@@ -1,5 +1,4 @@
 module type TRY = sig
-
   type 'a t = Success of 'a
               | Failure of exn
 
@@ -14,7 +13,7 @@ module Try : TRY = struct
   type 'a t = Success of 'a
   | Failure of exn
   let return x = Success x
-  let bind x f =
+  let bind x f : 'b t =
     match x with
     | Success n -> f n
     | Failure e -> Failure e
@@ -23,13 +22,13 @@ module Try : TRY = struct
     | Success _ -> x
     | Failure e -> ferr e
 
-  let filter x f =
+  let filter x f: 'a t =
     match x with
-    | Success n when (f n) = false -> Failure (Invalid_argument "Monad does not satisfy predicate")
+    | Success n when (f n) = false ->  Failure (Invalid_argument "Monad does not satisfy predicate")
     | Success _ -> x
     | Failure e -> Failure e
 
-  let flatten x =
+  let flatten (x: 'a t t) =
     match x with
     | Success n -> n
     | Failure e -> Failure e

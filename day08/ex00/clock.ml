@@ -7,7 +7,7 @@ end
 
 module Watchtower: WATCHTOWER = struct
   type hour = int (* Monoid set *)
-  let zero = 12 (* identity element *)
+  let zero = 12 (* neutral element *)
 
   (* Monoid binary operations set -> set -> set *)
   let add h c = (h + (c mod zero)) mod zero

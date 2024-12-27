@@ -17,6 +17,6 @@ class virtual alkane n =
   object
     inherit Molecule.molecule (get_alkane_name n) ((n, new Carbon.carbon) :: ((n * 2 + 2), new Hydrogen.hydrogen) :: [])
     method carbon_count = n
-    method hydrogen_count = (n * 2) + 2
+    (* method hydrogen_count = (n * 2) + 2 *)
   end
 
